@@ -23,7 +23,7 @@
 static const int QUEUEMAX = 5;
 
 typedef struct {
-    Com       base;
+    Com         base;
     uint16_t    port;
     int         serverSockfd;
     int         clientSockfd;
