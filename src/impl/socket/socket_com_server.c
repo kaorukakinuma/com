@@ -1,5 +1,5 @@
 /*
- *    file:             socket_ipcom_server.c
+ *    file:             socket_com_server.c
  *    creation date:    2020-10-07
  *    last update:      2020-10-07
  *    author:           kaoru kakinuma
@@ -11,29 +11,29 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#include "socket_ipcom_server.h"
-#include "ipcom.h"
+#include "socket_com_server.h"
+#include "com.h"
 
 #define CHECK_NULL( p )\
-    if ( p == NULL ) return IPCOM_E_OBJ;
+    if ( p == NULL ) return COM_E_OBJ;
 
 #define CHECK_SOCKFD( pSelf )\
-    if ( pSelf->clientSockfd < 0 ) return IPCOM_E_OBJ;
+    if ( pSelf->clientSockfd < 0 ) return COM_E_OBJ;
 
 static const int QUEUEMAX = 5;
 
 typedef struct {
-    Ipcom       base;
+    Com       base;
     uint16_t    port;
     int         serverSockfd;
     int         clientSockfd;
-} SocketIpcomServer;
+} SocketComServer;
 
 /* ------------------------------------------------------------------------- */
 
-static IpcomErcd Open( Ipcom *pSuper )
+static ComErcd Open( Com *pSuper )
 {
-    SocketIpcomServer *pSelf = (SocketIpcomServer *)pSuper;
+    SocketComServer *pSelf = (SocketComServer *)pSuper;
     CHECK_NULL( pSelf );
     int ret;
 
@@ -41,7 +41,7 @@ static IpcomErcd Open( Ipcom *pSuper )
     int serverSockfd = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP );
     if ( serverSockfd < 0 ) {
         perror( "socket" );
-        return IPCOM_E_SYS;
+        return COM_E_SYS;
     }
 
     /* add an attribute of address-reuse */
@@ -50,7 +50,7 @@ static IpcomErcd Open( Ipcom *pSuper )
     if ( ret < 0 ) {
         perror( "setsockopt" );
         close( serverSockfd );
-        return IPCOM_E_SYS;
+        return COM_E_SYS;
     }
 
     /* bind address and port to the socket */
@@ -63,7 +63,7 @@ static IpcomErcd Open( Ipcom *pSuper )
     if ( ret < 0 ) {
         perror( "bind" );
         close( serverSockfd );
-        return IPCOM_E_SYS;
+        return COM_E_SYS;
     }
 
     /* wait for connection from client */
@@ -71,7 +71,7 @@ static IpcomErcd Open( Ipcom *pSuper )
     if ( ret < 0 ) {
         perror( "listen" );
         close( serverSockfd );
-        return IPCOM_E_SYS;
+        return COM_E_SYS;
     }
 
     /* get client socket descriptor */
@@ -79,18 +79,18 @@ static IpcomErcd Open( Ipcom *pSuper )
     if ( clientSockfd < 0 ) {
         perror( "accept" );
         close( serverSockfd );
-        return IPCOM_E_SYS;
+        return COM_E_SYS;
     }
 
     pSelf->serverSockfd = serverSockfd;
     pSelf->clientSockfd = clientSockfd;
 
-    return IPCOM_E_OK;
+    return COM_E_OK;
 }
 
-static IpcomErcd Close( Ipcom *pSuper )
+static ComErcd Close( Com *pSuper )
 {
-    SocketIpcomServer *pSelf = (SocketIpcomServer *)pSuper;
+    SocketComServer *pSelf = (SocketComServer *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_SOCKFD( pSelf );
 
@@ -100,12 +100,12 @@ static IpcomErcd Close( Ipcom *pSuper )
     pSelf->serverSockfd = -1;
     pSelf->clientSockfd = -1;
 
-    return IPCOM_E_OK;
+    return COM_E_OK;
 }
 
-static IpcomErcd Read( Ipcom *pSuper, char *pBuffer, int length )
+static ComErcd Read( Com *pSuper, char *pBuffer, int length )
 {
-    SocketIpcomServer *pSelf = (SocketIpcomServer *)pSuper;
+    SocketComServer *pSelf = (SocketComServer *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_NULL( pBuffer );
     CHECK_SOCKFD( pSelf );
@@ -117,17 +117,17 @@ static IpcomErcd Read( Ipcom *pSuper, char *pBuffer, int length )
             pSelf->clientSockfd, pBuffer+totallen, length-totallen, 0 );
         if ( recvlen <= 0 ) {
             perror( "recv" );
-            return IPCOM_E_SYS;
+            return COM_E_SYS;
         }
         totallen += (int)recvlen;
     }
 
-    return IPCOM_E_OK;
+    return COM_E_OK;
 }
 
-static IpcomErcd Write( Ipcom *pSuper, const char *pBuffer, int length )
+static ComErcd Write( Com *pSuper, const char *pBuffer, int length )
 {
-    SocketIpcomServer *pSelf = (SocketIpcomServer *)pSuper;
+    SocketComServer *pSelf = (SocketComServer *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_NULL( pBuffer );
     CHECK_SOCKFD( pSelf );
@@ -139,15 +139,15 @@ static IpcomErcd Write( Ipcom *pSuper, const char *pBuffer, int length )
             pSelf->clientSockfd, pBuffer+totallen, length-totallen, 0 );
         if ( sendlen <= 0 ) {
             perror( "send" );
-            return IPCOM_E_SYS;
+            return COM_E_SYS;
         }
         totallen += (int)sendlen;
     }
 
-    return IPCOM_E_OK;
+    return COM_E_OK;
 }
 
-static const Ipcom sBase = {
+static const Com sBase = {
     .Open  = Open,
     .Close = Close,
     .Read  = Read,
@@ -156,9 +156,9 @@ static const Ipcom sBase = {
 
 /* ------------------------------------------------------------------------- */
 
-Ipcom * __new__SocketIpcomServer( uint16_t port )
+Com * __new__SocketComServer( uint16_t port )
 {
-    SocketIpcomServer *pSelf = malloc( sizeof(SocketIpcomServer) );
+    SocketComServer *pSelf = malloc( sizeof(SocketComServer) );
     if ( pSelf == NULL ) {
         perror( "malloc" );
         return NULL;
@@ -169,10 +169,10 @@ Ipcom * __new__SocketIpcomServer( uint16_t port )
     pSelf->serverSockfd = -1;
     pSelf->clientSockfd = -1;
 
-    return (Ipcom *)pSelf;
+    return (Com *)pSelf;
 }
 
-Ipcom * __del__SocketIpcomServer( Ipcom *pSelf )
+Com * __del__SocketComServer( Com *pSelf )
 {
     if ( pSelf == NULL ) {
         return NULL;

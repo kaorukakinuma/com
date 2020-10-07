@@ -1,5 +1,5 @@
 /*
- *    file:             socket_ipcom_client.c
+ *    file:             socket_com_client.c
  *    creation date:    2020-10-07
  *    last update:      2020-10-07
  *    author:           kaoru kakinuma
@@ -13,27 +13,27 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#include "socket_ipcom_client.h"
-#include "ipcom.h"
+#include "socket_com_client.h"
+#include "com.h"
 
 #define CHECK_NULL( p )\
-    if ( p == NULL ) return IPCOM_E_OBJ;
+    if ( p == NULL ) return COM_E_OBJ;
 
 #define CHECK_SOCKFD( pSelf )\
-    if ( pSelf->serverSockfd < 0 ) return IPCOM_E_OBJ;
+    if ( pSelf->serverSockfd < 0 ) return COM_E_OBJ;
 
 typedef struct {
-    Ipcom         base;
+    Com           base;
     const char   *pAddress;
     uint16_t      port;
     int           serverSockfd;
-} SocketIpcomClient;
+} SocketComClient;
 
 /* ------------------------------------------------------------------------- */
 
-static IpcomErcd Open( Ipcom *pSuper )
+static ComErcd Open( Com *pSuper )
 {
-    SocketIpcomClient *pSelf = (SocketIpcomClient *)pSuper;
+    SocketComClient *pSelf = (SocketComClient *)pSuper;
     CHECK_NULL( pSelf );
     int ret;
 
@@ -43,7 +43,7 @@ static IpcomErcd Open( Ipcom *pSuper )
     ret = inet_aton( pSelf->pAddress, &serverSockaddr.sin_addr );
     if ( ret == 0 ) {
         perror( "inet_aton" );
-        return IPCOM_E_SYS;
+        return COM_E_SYS;
     }
     serverSockaddr.sin_port = htons( pSelf->port );
 
@@ -51,7 +51,7 @@ static IpcomErcd Open( Ipcom *pSuper )
     int serverSockfd = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP );
     if ( serverSockfd < 0 ) {
         perror( "socket" );
-        return IPCOM_E_SYS;
+        return COM_E_SYS;
     }
 
     /* connect to server */
@@ -60,29 +60,29 @@ static IpcomErcd Open( Ipcom *pSuper )
     if ( ret < 0 ) {
         perror( "connect" );
         close( serverSockfd );
-        return IPCOM_E_SYS;
+        return COM_E_SYS;
     }
 
     pSelf->serverSockfd = serverSockfd;
 
-    return IPCOM_E_OK;
+    return COM_E_OK;
 }
 
-static IpcomErcd Close( Ipcom *pSuper )
+static ComErcd Close( Com *pSuper )
 {
-    SocketIpcomClient *pSelf = (SocketIpcomClient *)pSuper;
+    SocketComClient *pSelf = (SocketComClient *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_SOCKFD( pSelf );
 
     close( pSelf->serverSockfd );
     pSelf->serverSockfd = -1;
 
-    return IPCOM_E_OK;
+    return COM_E_OK;
 }
 
-static IpcomErcd Read( Ipcom *pSuper, char *pBuffer, int length )
+static ComErcd Read( Com *pSuper, char *pBuffer, int length )
 {
-    SocketIpcomClient *pSelf = (SocketIpcomClient *)pSuper;
+    SocketComClient *pSelf = (SocketComClient *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_NULL( pBuffer );
     CHECK_SOCKFD( pSelf );
@@ -94,17 +94,17 @@ static IpcomErcd Read( Ipcom *pSuper, char *pBuffer, int length )
             pSelf->serverSockfd, pBuffer+totallen, length-totallen, 0 );
         if ( recvlen <= 0 ) {
             perror( "recv" );
-            return IPCOM_E_SYS;
+            return COM_E_SYS;
         }
         totallen += (int)recvlen;
     }
 
-    return IPCOM_E_OK;
+    return COM_E_OK;
 }
 
-static IpcomErcd Write( Ipcom *pSuper, const char *pBuffer, int length )
+static ComErcd Write( Com *pSuper, const char *pBuffer, int length )
 {
-    SocketIpcomClient *pSelf = (SocketIpcomClient *)pSuper;
+    SocketComClient *pSelf = (SocketComClient *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_NULL( pBuffer );
     CHECK_SOCKFD( pSelf );
@@ -116,15 +116,15 @@ static IpcomErcd Write( Ipcom *pSuper, const char *pBuffer, int length )
             pSelf->serverSockfd, pBuffer+totallen, length-totallen, 0 );
         if ( sendlen <= 0 ) {
             perror( "send" );
-            return IPCOM_E_SYS;
+            return COM_E_SYS;
         }
         totallen += (int)sendlen;
     }
 
-    return IPCOM_E_OK;
+    return COM_E_OK;
 }
 
-static const Ipcom sBase = {
+static const Com sBase = {
     .Open  = Open,
     .Close = Close,
     .Read  = Read,
@@ -133,9 +133,9 @@ static const Ipcom sBase = {
 
 /* ------------------------------------------------------------------------- */
 
-Ipcom * __new__SocketIpcomClient( const char *pAddress, uint16_t port )
+Com * __new__SocketComClient( const char *pAddress, uint16_t port )
 {
-    SocketIpcomClient *pSelf = malloc( sizeof(SocketIpcomClient) );
+    SocketComClient *pSelf = malloc( sizeof(SocketComClient) );
     if ( pSelf == NULL ) {
         perror( "malloc" );
         return NULL;
@@ -146,10 +146,10 @@ Ipcom * __new__SocketIpcomClient( const char *pAddress, uint16_t port )
     pSelf->port         = port;
     pSelf->serverSockfd = -1;
 
-    return (Ipcom *)pSelf;
+    return (Com *)pSelf;
 }
 
-Ipcom * __del__SocketIpcomClient( Ipcom *pSelf )
+Com * __del__SocketComClient( Com *pSelf )
 {
     if ( pSelf == NULL ) {
         return NULL;

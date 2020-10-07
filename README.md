@@ -1,7 +1,7 @@
-# Ipcom
+# Com
 
 Dependencies: `none`  
-Includes: `ipcom.h`
+Includes: `com.h`
 
 
 ## How to Build
@@ -10,7 +10,7 @@ Includes: `ipcom.h`
 $ sudo ./mk.sh
 #snip
 $ ls /home/lib
-libipcom.a
+libcom.a
 $ ls /home/include
-ipcom.h
+com.h
 ```

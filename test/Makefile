@@ -11,7 +11,7 @@ OBJS =\
 
 LIBPATH = /home/lib/
 LIBS =\
-	-lipcom
+	-lcom
 
 INCPATH = /home/include/
 
