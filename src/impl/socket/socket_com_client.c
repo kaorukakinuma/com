@@ -80,14 +80,14 @@ static ComErcd Close( Com *pSuper )
     return COM_E_OK;
 }
 
-static ComErcd Read( Com *pSuper, char *pBuffer, int length )
+static ComErcd Read( Com *pSuper, char *pBuffer, size_t length )
 {
     SocketComClient *pSelf = (SocketComClient *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_NULL( pBuffer );
     CHECK_SOCKFD( pSelf );
 
-    int totallen = 0;
+    size_t totallen = 0;
     while ( totallen < length ) {
 
         ssize_t recvlen = recv(
@@ -96,20 +96,20 @@ static ComErcd Read( Com *pSuper, char *pBuffer, int length )
             perror( "recv" );
             return COM_E_SYS;
         }
-        totallen += (int)recvlen;
+        totallen += (size_t)recvlen;
     }
 
     return COM_E_OK;
 }
 
-static ComErcd Write( Com *pSuper, const char *pBuffer, int length )
+static ComErcd Write( Com *pSuper, const char *pBuffer, size_t length )
 {
     SocketComClient *pSelf = (SocketComClient *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_NULL( pBuffer );
     CHECK_SOCKFD( pSelf );
 
-    int totallen = 0;
+    size_t totallen = 0;
     while ( totallen < length ) {
 
         ssize_t sendlen = send(
@@ -118,7 +118,7 @@ static ComErcd Write( Com *pSuper, const char *pBuffer, int length )
             perror( "send" );
             return COM_E_SYS;
         }
-        totallen += (int)sendlen;
+        totallen += (size_t)sendlen;
     }
 
     return COM_E_OK;

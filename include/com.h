@@ -7,12 +7,14 @@
 #ifndef _COM_H_
 #define _COM_H_
 
+#include <stddef.h>
 #include "com_types.h"
+
 struct Com {
 	ComErcd (*Open )( Com *pSelf );
 	ComErcd (*Close)( Com *pSelf );
-	ComErcd (*Read )( Com *pSelf, char *pBuffer, int length );
-	ComErcd (*Write)( Com *pSelf, const char *pBuffer, int length );
+	ComErcd (*Read )( Com *pSelf, char *pBuffer, size_t length );
+	ComErcd (*Write)( Com *pSelf, const char *pBuffer, size_t length );
 };
 
 #endif /* _COM_H_ */
