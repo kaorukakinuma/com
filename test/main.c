@@ -22,20 +22,17 @@ static void * WriteThread( void *pArg )
 
 int main( void )
 {
-    Com *pCom = __new__MqueueCom( NAME );
-    pCom->Open( pCom );
-
     pthread_t thread;
     pthread_create( &thread, NULL, WriteThread, NULL );
     pthread_detach( thread );
 
-    while ( 1 ) {
-        char buf = 0;
-        pCom->Read( pCom, &buf, 1 );
-        if ( buf > 0 ) {
-            printf( "Communication success.\n" );
-            break;
-        }
+    Com *pCom = __new__MqueueCom( NAME );
+    pCom->Open( pCom );
+
+    char buf = 0;
+    pCom->Read( pCom, &buf, 1 );
+    if ( buf > 0 ) {
+        printf( "Communication success.\n" );
     }
 
     pCom->Close( pCom );
