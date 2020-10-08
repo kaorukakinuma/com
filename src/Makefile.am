@@ -12,7 +12,6 @@ AM_CFLAGS = \
 
 # Source codes included in library
 libcom_a_SOURCES = \
-    @srcdir@/impl/mqueue/mqueue_com_client.c \
-    @srcdir@/impl/mqueue/mqueue_com_server.c \
+    @srcdir@/impl/mqueue/mqueue_com.c \
     @srcdir@/impl/socket/socket_com_client.c \
     @srcdir@/impl/socket/socket_com_server.c

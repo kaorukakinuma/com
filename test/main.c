@@ -1,34 +1,32 @@
 #include <stdio.h>
 #include <pthread.h>
-#include <unistd.h>
 
-#include "mqueue_com_server.h"
-#include "mqueue_com_client.h"
+#include "mqueue_com.h"
 #include "com.h"
 
-static const char * const NAME = "/test";
+static const char * const NAME = "/msgqueue";
 
-static void * client( void *pArg )
+static void * WriteThread( void *pArg )
 {
     (void)pArg;
-    Com *pCom = __new__MqueueComClient( NAME );
+    Com *pCom = __new__MqueueCom( NAME );
     pCom->Open( pCom );
 
     char buf = 1;
     pCom->Write( pCom, &buf, 1 );
 
     pCom->Close( pCom );
-    pCom = __del__MqueueComClient( pCom );
+    pCom = __del__MqueueCom( pCom );
     pthread_exit( NULL );
 }
 
 int main( void )
 {
-    Com *pCom = __new__MqueueComServer( NAME );
+    Com *pCom = __new__MqueueCom( NAME );
     pCom->Open( pCom );
 
     pthread_t thread;
-    pthread_create( &thread, NULL, client, NULL );
+    pthread_create( &thread, NULL, WriteThread, NULL );
     pthread_detach( thread );
 
     while ( 1 ) {
@@ -38,10 +36,9 @@ int main( void )
             printf( "Communication success.\n" );
             break;
         }
-        sleep( 1 );
     }
 
     pCom->Close( pCom );
-    pCom = __del__MqueueComServer( pCom );
+    pCom = __del__MqueueCom( pCom );
     return 0;
 }

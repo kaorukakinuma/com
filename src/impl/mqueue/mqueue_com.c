@@ -1,5 +1,5 @@
 /*
- *    file:             mqueue_com_client.c
+ *    file:             mqueue_com.c
  *    creation date:    2020-10-07
  *    last update:      2020-10-08
  *    author:           kaoru kakinuma
@@ -13,7 +13,7 @@
 #include <mqueue.h>
 #include <sys/stat.h>
 
-#include "mqueue_com_client.h"
+#include "mqueue_com.h"
 #include "com.h"
 
 #define CHECK_NULL( p )\
@@ -28,16 +28,17 @@ typedef struct {
     mqd_t       mqueue;
     size_t      msgsize;
     char       *pBuffer;
-} MqueueComClient;
+} MqueueCom;
 
 /* ------------------------------------------------------------------------- */
 
 static ComErcd Open( Com *pSuper )
 {
-    MqueueComClient *pSelf = (MqueueComClient *)pSuper;
+    MqueueCom *pSelf = (MqueueCom *)pSuper;
     CHECK_NULL( pSelf );
 
-    mqd_t mqueue = mq_open( pSelf->pName, O_RDWR );
+    mqd_t mqueue = mq_open(
+        pSelf->pName, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR, NULL );
     if ( mqueue < 0 ) {
         perror( "mq_open" );
         return COM_E_SYS;
@@ -65,7 +66,7 @@ static ComErcd Open( Com *pSuper )
 
 static ComErcd Close( Com *pSuper )
 {
-    MqueueComClient *pSelf = (MqueueComClient *)pSuper;
+    MqueueCom *pSelf = (MqueueCom *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_MQD( pSelf );
 
@@ -83,7 +84,7 @@ static ComErcd Close( Com *pSuper )
 
 static ComErcd Read( Com *pSuper, char *pBuffer, size_t length )
 {
-    MqueueComClient *pSelf = (MqueueComClient *)pSuper;
+    MqueueCom *pSelf = (MqueueCom *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_NULL( pBuffer );
     CHECK_MQD( pSelf );
@@ -106,7 +107,7 @@ static ComErcd Read( Com *pSuper, char *pBuffer, size_t length )
 
 static ComErcd Write( Com *pSuper, const char *pBuffer, size_t length )
 {
-    MqueueComClient *pSelf = (MqueueComClient *)pSuper;
+    MqueueCom *pSelf = (MqueueCom *)pSuper;
     CHECK_NULL( pSelf );
     CHECK_NULL( pBuffer );
     CHECK_MQD( pSelf );
@@ -134,9 +135,9 @@ static const Com sBase = {
 
 /* ------------------------------------------------------------------------- */
 
-Com * __new__MqueueComClient( const char *pName )
+Com * __new__MqueueCom( const char *pName )
 {
-    MqueueComClient *pSelf = malloc( sizeof(MqueueComClient) );
+    MqueueCom *pSelf = malloc( sizeof(MqueueCom) );
     if ( pSelf == NULL ) {
         perror( "malloc" );
         return NULL;
@@ -149,14 +150,16 @@ Com * __new__MqueueComClient( const char *pName )
     return (Com *)pSelf;
 }
 
-Com * __del__MqueueComClient( Com *pSelf )
+Com * __del__MqueueCom( Com *pSelf )
 {
     if ( pSelf == NULL ) {
         return NULL;
     }
     pSelf->Close( pSelf );
 
-    free( pSelf );
+    MqueueCom *pSub = (MqueueCom *)pSelf;
+    mq_unlink( pSub->pName );
+    free( pSub );
 
     return NULL;
 }
