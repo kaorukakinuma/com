@@ -2,12 +2,16 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 # Name of libraries
 lib_LIBRARIES = \
-    libipcom.a
+    libcom.a
 
 # Compile flag for path to include header
 AM_CFLAGS = \
+    -I$(top_srcdir)/include/impl/mqueue \
+    -I$(top_srcdir)/include/impl/socket \
     -I$(top_srcdir)/include
 
 # Source codes included in library
-libipcom_a_SOURCES = \
-    @srcdir@/ipcom.c
+libcom_a_SOURCES = \
+    @srcdir@/impl/mqueue/mqueue_com.c \
+    @srcdir@/impl/socket/socket_com_client.c \
+    @srcdir@/impl/socket/socket_com_server.c
