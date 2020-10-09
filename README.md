@@ -12,7 +12,41 @@ $ sudo ./mk.sh
 $ ls /home/lib
 libcom.a
 $ ls /home/include
-com.h
+com.h ...
+```
+
+
+## Design
+
+```plantuml
+@startuml
+
+class Com << (I, yellow) interface >> {
+    + Open()
+    + Close()
+    + Read( buffer, length )
+    + Write( buffer, length )
+}
+namespace COM {
+    class Mqueue << (M, orange) >> {
+        + constructor( name )
+        + destructor()
+    }
+    namespace SOCKET {
+        class Client << (M, orange) >> {
+            + constructor( address, port )
+            + destructor()
+        }
+        class Server << (M, orange) >> {
+            + constructor( port )
+            + destructor()
+        }
+    }
+}
+
+Com <|. COM : <<implements>>
+
+@enduml
 ```
 
 
