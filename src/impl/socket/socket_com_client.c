@@ -152,6 +152,11 @@ static const Com sBase = {
 
 Com * __new__SocketComClient( const char *pAddress, uint16_t port )
 {
+    if ( pAddress == NULL ) {
+        printf( "Invalid server address." );
+        return NULL;
+    }
+
     SocketComClient *pSelf = malloc( sizeof(SocketComClient) );
     if ( pSelf == NULL ) {
         perror( "malloc" );

@@ -154,6 +154,11 @@ static const Com sBase = {
 
 Com * __new__MqueueCom( const char *pName )
 {
+    if ( pName == NULL ) {
+        printf( "Invalid message queue name." );
+        return NULL;
+    }
+
     MqueueCom *pSelf = malloc( sizeof(MqueueCom) );
     if ( pSelf == NULL ) {
         perror( "malloc" );
